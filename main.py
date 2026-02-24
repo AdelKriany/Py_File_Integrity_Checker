@@ -70,25 +70,39 @@ def main_hash():
         
     db_json = "hash_db.json"
 
-    crypt_choice = input(f"{Colors.YELLOW}Do you want to encrypt the files after hashing? (yay/nay):{Colors.END} ").strip().lower()
+    crypt_choice = input(f"{Colors.YELLOW}Do you want to encrypt the files after hashing? (yay/nay):{Colors.END} ").strip().lower()################
+
+    if crypt_choice=="yay":
+        encrypt_file(target_path)
+    
+
 
     print(f"\n{Colors.MAGENTA}--- SETTINGS ---{Colors.END}")
 
     re_init = input("re-initialize? (yay/nay): ").strip().lower()
     
     if re_init == "yay":
-        hashes = {}
+        # hashes = {}
+        db_data={
+            "metadata":{
+                "algorithm": hash_ask,
+                "version": "2.0",
+            },
+            "files": {}
+        }
         if os.path.isdir(target_path):
             
             for root, dirs, files in os.walk(target_path):
                 for file in files:
                     full_path = os.path.join(root, file)
-                    hashes[full_path] = Hashing_engine(full_path, hash_ask)
+                    db_data["files"][full_path]= Hashing_engine(full_path, hash_ask)
+                    # hashes[full_path] = Hashing_engine(full_path, hash_ask)
         else:
-            hashes[target_path] = Hashing_engine(target_path, hash_ask)
+            # hashes[target_path] = Hashing_engine(target_path, hash_ask)
+            db_data["files"][target_path]= Hashing_engine(target_path, hash_ask)
 
         with open(db_json, 'w') as f:
-            json.dump(hashes, f, indent=4)
+            json.dump(db_data, f, indent=4)
         print(f"{Colors.GREEN}[✔]Database updated!{Colors.END}")
 
 
@@ -99,11 +113,11 @@ def main_hash():
         with open(db_json, 'r') as f:
             stored = json.load(f)
         
-        alg_used = stored.get("algorithm", hash_ask) # in case we want to store the algorithm in the future
+        alg_used = stored.get("metadata", {}).get("algorithm", hash_ask) # in case we want to store the algorithm in the future
         print(f"\n{Colors.CYAN}[*] Checking integrity using {alg_used.upper()}...{Colors.END}\n")
         
-        for f_path, old_h in stored.items(): # استخدمنا .items() هنا
-            curr_h = Hashing_engine(f_path,algorithm=hash_ask)
+        for f_path, old_h in stored["files"].items(): 
+            curr_h = Hashing_engine(f_path,algorithm=alg_used)
             if curr_h != old_h:
                 print(f"{Colors.RED}[MODIFIED]: {Colors.END}{f_path}")
             else:
