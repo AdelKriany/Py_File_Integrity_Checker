@@ -1,3 +1,70 @@
+# #!/usr/bin/env python3
+# import hashlib
+# import os
+# import json
+
+# secret_key = "adel"
+
+# def Hashing_engine(file_path):
+#     sha256_hash = hashlib.sha256()
+#     try:
+#         with open(file_path, 'rb') as f:
+#             for bite_block in iter(lambda: f.read(4096), b""):
+#                 print(f"I am hashing this data: {bite_block.strip()}")#if had any problem remove the strip
+#                 # إذا أردت الحماية الحقيقية، لا تستخدم .strip() 
+#                 # لأن تغيير السطر الجديد يعتبر "تعديلاً" في الملف
+#                 sha256_hash.update(bite_block)
+#         # incorporate the secret key into the final hash
+#         #sha256_hash.update(secret_key.encode())
+#         return sha256_hash.hexdigest()
+#     except Exception as e:
+#         print(f"Error hashing file {file_path}: {e}")
+#         return None
+
+# def main_hash():
+#     target_path = input("Enter path: ").strip()
+#     if not os.path.exists(target_path):
+#         print("Path does not exist")
+#         exit(-1)
+        
+#     db_json = "hash_db.json"
+#     re_init = input("re-initialize? (yay/nay): ").strip().lower()
+    
+#     if re_init == "yay":
+#         hashes = {}
+#         if os.path.isdir(target_path):
+#             # الترتيب الصحيح: root ثم dirs ثم files
+#             for root, dirs, files in os.walk(target_path):
+#                 for file in files:
+#                     full_path = os.path.join(root, file)
+#                     hashes[full_path] = Hashing_engine(full_path)
+#         else:
+#             hashes[target_path] = Hashing_engine(target_path)
+
+#         with open(db_json, 'w') as f:
+#             json.dump(hashes, f, indent=4)
+#         print("Database updated!")
+
+#     else:
+#         if not os.path.exists(db_json):
+#             print("No DB found")
+#             exit(-1)
+#         with open(db_json, 'r') as f:
+#             stored = json.load(f)
+        
+#         for f_path, old_h in stored.items(): # استخدمنا .items() هنا
+#             curr_h = Hashing_engine(f_path)
+#             if curr_h != old_h:
+#                 print(f"!!! MODIFIED: {f_path}")
+#             else:
+#                 print(f"OK: {f_path}")
+
+# if __name__ == "__main__":
+#     main_hash()
+
+
+
+
 #!/usr/bin/env python3
 import hashlib
 import os
@@ -33,7 +100,8 @@ def print_banner():
     print(banner)
 
 
- 
+
+
 def Hashing_engine(file_path,algorithm):
     """
     Computes the hash of a file using the specified algorithm.
@@ -147,3 +215,61 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def generate_key():
+    key = Fernet.generate_key()
+    with open("secret.key", "wb") as key_file:
+        key_file.write(key)
+    print("[+] Key generated and saved as 'secret.key'. Keep it safe!")
+
+# 2. Load the existing key
+def load_key():
+    return open("secret.key", "rb").read()
+
+# 3. Encrypt a file
+def encrypt_file(file_path):
+    key = load_key()
+    f = Fernet(key)
+    
+    with open(file_path, "rb") as file:
+        file_data = file.read()
+    
+    encrypted_data = f.encrypt(file_data)
+    
+    with open(file_path, "wb") as file:
+        file.write(encrypted_data)
+    print(f"[!] File {file_path} has been ENCRYPTED.")
+
+# 4. Decrypt a file
+def decrypt_file(file_path):
+    secret_key_check=input(f"{Colors.YELLOW}Enter the secret key to decrypt the file: {Colors.END}").strip().encode('utf-8')
+
+    key = secret_key_check
+    f = Fernet(key)
+    
+    with open(file_path, "rb") as file:
+        encrypted_data = file.read()
+    
+    try:
+        decrypted_data = f.decrypt(encrypted_data)
+        with open(file_path, "wb") as file:
+            file.write(decrypted_data)
+        print(f"[!] File {file_path} has been DECRYPTED.")
+    except Exception:
+        print("[X] Invalid Key or file is not encrypted.")
