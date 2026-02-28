@@ -3,6 +3,7 @@ from cryptography.fernet import Fernet
 import json
 import sys
 from tqdm import tqdm
+import getpass
 
 
 
@@ -32,20 +33,28 @@ def load_key():
 # 3. Encrypt a file
 def encrypt_file(file_path):
     key = load_key()
+    if not key: return
     f = Fernet(key)
+  
+    file_size = os.path.getsize(file_path)
     
-    with open(file_path, "rb") as file:
-        file_data = file.read()
+    # Fernet لا يدعم التشفير على أجزاء (Streaming) بشكل مباشر بسهولة، 
+    # لذا سنستخدم tqdm لإظهار حالة القراءة والمعالجة
+    with tqdm(total=file_size, unit='B', unit_scale=True, desc=f"Encrypting {os.path.basename(file_path)}") as pbar:
+        with open(file_path, "rb") as file:
+            file_data = file.read()
+            pbar.update(file_size) # تحديث الشريط بعد القراءة
     
     encrypted_data = f.encrypt(file_data)
     
     with open(file_path, "wb") as file:
         file.write(encrypted_data)
-    print(f"[!] File {file_path} has been ENCRYPTED.")
-
+    print(f"\n{Colors.GREEN}[✔] File {file_path} has been ENCRYPTED.{Colors.END}")
 # 4. Decrypt a file
 def decrypt_file(file_path):
-    secret_key_check=input(f"{Colors.YELLOW}Enter the secret key to decrypt the file: {Colors.END}").strip().encode('utf-8')
+    secret_key_check=getpass.getpass(f"{Colors.YELLOW}Enter the secret key to decrypt the file: {Colors.END}").strip().encode('utf-8')
+  
+    
 
     key = secret_key_check
    

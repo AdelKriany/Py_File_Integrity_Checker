@@ -6,9 +6,9 @@ import sys
 from tqdm import tqdm
 from cryptography.fernet import Fernet
 from cryp import generate_key, load_key, encrypt_file, decrypt_file
+import hmac
+import getpass
 
-
-secret_salt = "adel"
 
 
 class Colors:
@@ -40,17 +40,19 @@ def Hashing_engine(file_path,algorithm):
     Supported: 'md5', 'sha1', 'sha256', 'sha512', etc.
     """
     #sha256_hash = hashlib.sha256()
-    hash_algorithm = hashlib.new(algorithm)
+    # hash_algorithm = hashlib.new(algorithm)
+    key=load_key()
+    hash_algorithm = hmac.new(key, digestmod=algorithm)
     try:
         with open(file_path, 'rb') as f:
             file_size = os.path.getsize(file_path)
-            for bite_block in iter(lambda: f.read(4096), b""):
-                with tqdm(total=file_size, unit='B', unit_scale=True, desc=f"Hashing {os.path.basename(file_path)[:20]}", leave=False) as pbar:
-               # print(f"I am hashing this data: {bite_block.strip()}")#if had any problem remove the strip
-                  hash_algorithm.update(bite_block)
-                  pbar.update(len(bite_block))
+            with tqdm(total=file_size, unit='B', unit_scale=True, desc=f"Hashing {os.path.basename(file_path)[:20]}") as pbar:
+                 for bite_block in iter(lambda: f.read(4096), b""):   
+                     # print(f"I am hashing this data: {bite_block.strip()}")#if had any problem remove the strip
+                     hash_algorithm.update(bite_block)
+                     pbar.update(len(bite_block))
         # incorporate the secret key into the final hash
-        hash_algorithm.update(secret_salt.encode())
+       # hash_algorithm.update(secret_salt.encode())
         return hash_algorithm.hexdigest()
     except Exception as e:
         print(f"Error hashing file {file_path}: {e}")
